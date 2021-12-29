@@ -3,6 +3,7 @@ import io
 import zipfile
 from enum import Enum
 from PIL import Image
+import argparse
 
 Mode = Enum('Mode', 'zip dir')
 PageMode = Enum('PageMode', 'R2L L2R')
@@ -13,7 +14,7 @@ def getFileName(page_num, ext):
     return f"{page_num:03}{ext}"
 
 
-class Splitter():
+class MangaSplitter():
     def __init__(self) -> None:
         pass
 
@@ -78,5 +79,17 @@ class Splitter():
             return [im]
 
 
-s = Splitter()
-s.split('../tl', mode=Mode.dir)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("MangaSplitter")
+    parser.add_argument("path", help="path to your manga", type=str)
+    parser.add_argument("-dir", action="store_const", const=Mode.dir, default=Mode.zip, dest="mode",
+                        help="if manga episode is in directory (default: zip)")
+    parser.add_argument("-l2r", action="store_const", const=PageMode.L2R, default=PageMode.R2L, dest="orientation",
+                        help="if each page is from left to right (default r2l)")
+    parser.add_argument("-single", action="store_false", default=True, dest="multiple",
+                        help="if the path is an episode rather than a dir w/ multiple episodes")
+
+    args = parser.parse_args()
+    s = MangaSplitter()
+    s.split(args.path, multiple=args.multiple,
+            mode=args.mode, page_mode=args.orientation)
