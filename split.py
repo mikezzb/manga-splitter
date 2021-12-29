@@ -20,7 +20,6 @@ class Splitter():
     def split(self, path, multiple=True, mode=Mode.zip, page_mode=PageMode.R2L):
         self.mode = mode
         self.page_mode = page_mode
-        page_num = 0
         mangas = self.__get_mangas(path) if multiple else [path]
         save_dir = os.path.join(os.path.dirname(
             path), f"{os.path.basename(path)}_split")
@@ -28,24 +27,37 @@ class Splitter():
             os.mkdir(save_dir)
         for manga in mangas:
             print(f"Processing: {manga}")
-            out_name = os.path.join(save_dir, os.path.basename(manga))
-            m_zip = zipfile.ZipFile(
-                manga) if self.mode == Mode.zip else None
-            out_zip = zipfile.ZipFile(
-                out_name, 'w') if self.mode == Mode.zip else None
+            page_num = 0
+            out_name = os.path.join(save_dir, os.path.basename(
+                manga)) if multiple else save_dir
+            if self.mode == Mode.zip:
+                m_zip = zipfile.ZipFile(manga)
+                out_zip = zipfile.ZipFile(out_name, 'w')
+            else:
+                m_zip = None
+                if not os.path.exists(out_name):
+                    os.mkdir(out_name)
+
             pages = self.__get_pages(manga, m_zip)
             _, ext = os.path.splitext(pages[0])
             save_format = 'PNG' if ext.endswith('png') else 'jpeg'
             for page in pages:
-                splitted_imgs = self.__split_page(m_zip.open(page) if m_zip else page)
+                splitted_imgs = self.__split_page(
+                    m_zip.open(page) if m_zip else os.path.join(manga, page))
                 for im in splitted_imgs:
-                    img_byte_arr = io.BytesIO()
-                    im.save(img_byte_arr, format=save_format)
-                    out_zip.writestr(getFileName(page_num, ext),
-                                     img_byte_arr.getvalue())
+                    im_name = getFileName(page_num, ext)
+                    if m_zip:
+                        img_byte_arr = io.BytesIO()
+                        im.save(img_byte_arr, format=save_format)
+                        out_zip.writestr(im_name,
+                                         img_byte_arr.getvalue())
+                    else:
+                        im.save(os.path.join(out_name, im_name),
+                                format=save_format)
                     page_num += 1
-            m_zip.close()
-            out_zip.close()
+            if self.mode == Mode.zip:
+                m_zip.close()
+                out_zip.close()
 
     def __get_mangas(self, path):
         for f in os.scandir(path):
@@ -53,7 +65,7 @@ class Splitter():
                 yield f.path
 
     def __get_pages(self, path: str, m_zip: zipfile.ZipFile):
-        return m_zip.namelist() if m_zip else [f for f in os.listdir(path) if f.endswith(ImageExt)]
+        return m_zip.namelist() if m_zip else sorted([f for f in os.listdir(path) if f.endswith(ImageExt)])
 
     def __split_page(self, file):
         im = Image.open(file)
@@ -67,4 +79,4 @@ class Splitter():
 
 
 s = Splitter()
-s.split('../tl')
+s.split('../tl', mode=Mode.dir)
