@@ -1,10 +1,12 @@
 # Manga Splitter
-Split landscape manga into portrait to protect your eyes.
+Split landscape manga in portraits to protect your eyes.
 
-Works for both zip or directory.
+Works well for both zip or directory.
+
+<div align="center"><img src="./.github/original.jpg" style="zoom:20%;" /></div>
 
 ### Usage
-Suppose directory of manga contains multiple episodes in zip (default)/directory
+Suppose directory of manga contains multiple episodes in zip /directory
 
 ```
 python3 MangaSplitter.py [-dir] [-l2r] [-single] path
