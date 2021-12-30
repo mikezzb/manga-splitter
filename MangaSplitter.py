@@ -49,12 +49,13 @@ class MangaSplitter():
                     im_name = getFileName(page_num, ext)
                     if m_zip:
                         img_byte_arr = io.BytesIO()
-                        im.save(img_byte_arr, format=save_format)
+                        im.save(img_byte_arr, format=save_format,
+                                subsampling=0, quality=90)
                         out_zip.writestr(im_name,
                                          img_byte_arr.getvalue())
                     else:
                         im.save(os.path.join(out_name, im_name),
-                                format=save_format)
+                                format=save_format, subsampling=0, quality=90)
                     page_num += 1
             if self.mode == Mode.zip:
                 m_zip.close()
